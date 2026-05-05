@@ -8,7 +8,7 @@ Modern, güvenli ve kullanıcı dostu emlak alım-satım platformu. 360° sanal 
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3.0-purple.svg)](https://getbootstrap.com)
 [![License](https://img.shields.io/badge/License-Private-red.svg)]()
 
-##  Özellikler
+##  Özellikler 
 
 ###  **Tamamlanan Özellikler**
 
