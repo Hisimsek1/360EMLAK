@@ -1,377 +1,177 @@
-#  360 Emlak - Profesyonel SaaS Emlak Platformu
+# 360EV - Real Estate SaaS Platform
 
-Modern, güvenli ve kullanıcı dostu emlak alım-satım platformu. 360° sanal tur teknolojisi ile gayrimenkulleri gerçekçi bir şekilde görüntüleme imkanı sunar.
-İnsanların evlerinden çıkmadan satın alacakları , kiralayacakları evleri 360 kameralar ile çekilmiş fotoğraflar sayesinde dolaşmalarına imkan sağlar.
+A real estate listing platform built with Flask, featuring 360-degree virtual tours, user dashboards, and a multi-role access system.
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-3.0.0-green.svg)](https://flask.palletsprojects.com)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3.0-purple.svg)](https://getbootstrap.com)
 [![License](https://img.shields.io/badge/License-Private-red.svg)]()
 
-##  Özellikler
+## Features
 
-###  **Tamamlanan Özellikler**
+- Authentication with CSRF protection (Flask-Login)
+- User profiles with photo upload, bio, city, and profession fields
+- Property listings with image galleries
+- 360-degree virtual tour creation and viewing (Pannellum.js)
+- Role-based access control (user, agent, admin, super_admin)
+- Admin panel for user and listing management
+- Thread-safe JSON file database with automatic backups
+- Production-ready with Gunicorn and environment-based configuration
 
--  **Modern Mimari**: Factory Pattern ile Flask uygulama yapısı 
--  **Güvenli Kimlik Doğrulama**: Flask-Login + CSRF koruması
--  **Kapsamlı Profil Sistemi**: Bio, fotoğraf, şehir, meslek bilgileri
--  **Professional Dashboard**: Navy temalı, istatistikli kullanıcı paneli  
--  **Modern UI/UX**: Bootstrap 5 + Navy gradient tasarım sistemi
--  **360° Sanal Turlar**: Pannellum.js ile immersive görüntüleme
--  **Responsive Design**: Mobil ve desktop uyumlu
--  **Admin Panel**: Super admin yönetim sistemi
--  **JSON Database**: Thread-safe, kolay yönetim
--  **Dosya Yükleme**: Güvenli profil fotoğrafı ve ilan görseli yükleme
--  **Production Ready**: Gunicorn + environment configuration
-
-###  **Tasarım Sistemi**
-
-- **Ana Renk Paleti**: Navy Blue (#1E3A8A), Royal Blue (#2563EB)
-- **Tasarım Dili**: Professional SaaS, minimalist, güven veren
-- **Komponentler**: 
-  - Gradient stat kartları (5 farklı tema)
-  - Interactive dashboard
-  - Professional profil sistemi
-  - Modern form elements
-  - Responsive navigation
-
-##  Proje Yapısı
+## Project Structure
 
 ```
 360EV/
-├── app.py                    # Flask factory pattern uygulama
-├── config.py                 # Çoklu ortam konfigürasyonu
-├── wsgi.py                   # Production WSGI entry point
-├── requirements.txt          # Python dependencies
-├── test_app.py               # Test suite (pytest)
-├── README.md                 # Bu dosya
-├── .gitignore               # Git ignore kuralları
-├── .env.example             # Environment template
-├── UPGRADE_PLAN.md          # Geliştirme planı
-├── DASHBOARD_DESIGN.md      # Dashboard tasarım rehberi
-├── 
-├── blueprints/              # Flask blueprints (modüler yapı)
-│   ├──  main/               # Ana sayfalar (anasayfa, hakkımızda, iletişim)
-│   ├──  auth/               # Kimlik doğrulama (giriş, kayıt, çıkış)
-│   ├──  dashboard/          # Kullanıcı paneli ve profil yönetimi
-│   ├──  property/           # İlan listeleme ve detayları
-│   ├──  tour/               # 360° tur oluşturma ve düzenleme
-│   └──  admin/              # Admin panel (super admin only)
-├── 
-├──  core/                   # Çekirdek sistemler
-│   ├──  database.py         # JSON database operations
-│   ├──  data_manager.py     # Data management layer
-│   ├──  models.py           # User ve diğer modeller
-│   └──  utils.py            # Yardımcı fonksiyonlar
-├── 
-├──  static/                 # Statik dosyalar
-│   ├──  css/style.css       # Custom CSS + navbar styles
-│   ├──  js/editor.js       # Tour editor JavaScript
-│   ├──  images/            # Logo ve genel görseller
-│   └──  uploads/           # Kullanıcı yüklemeleri
-│       ├──  profiles/      # Profil fotoğrafları
-│       ├──  properties/    # İlan görselleri
-│       └──  tours/         # 360° tur görselleri
-├── 
-├──  templates/              # Jinja2 HTML şablonları
-│   ├──  base.html          # Temel şablon (navbar, footer)
-│   ├──  main/              # Ana sayfa şablonları
-│   ├──  auth/              # Authentication templates
-│   ├──  dashboard/         # Dashboard ve profil templates
-│   ├──  property/          # İlan templates
-│   ├──  tour/              # 360° tour templates
-│   ├──  admin/             # Admin panel templates
-│   └──  errors/            # Hata sayfaları (404, 500, vb.)
-├── 
-├──  data/                   # JSON veritabanı
-│   ├──  data.json          # Ana veri dosyası
-│   └──  backups/          # Otomatik backup dosyaları
-└── 
-└──  logs/                   # Uygulama logları
-    └──  app.log
+├── app.py                  # Application factory
+├── config.py               # Environment configurations
+├── wsgi.py                 # WSGI entry point
+├── requirements.txt
+├── test_app.py
+├── blueprints/
+│   ├── main/               # Public pages
+│   ├── auth/               # Login, register, logout
+│   ├── dashboard/          # User panel and profile
+│   ├── property/           # Listings
+│   ├── tour/               # 360-degree tour editor
+│   └── admin/              # Admin panel
+├── core/
+│   ├── database.py         # JSON database layer
+│   ├── data_manager.py     # Data access layer
+│   ├── models.py           # User model
+│   └── utils.py            # Helpers
+├── static/
+│   ├── css/style.css
+│   ├── js/editor.js
+│   └── uploads/
+│       ├── profiles/
+│       ├── properties/
+│       └── tours/
+├── templates/
+│   ├── base.html
+│   ├── main/
+│   ├── auth/
+│   ├── dashboard/
+│   ├── property/
+│   ├── tour/
+│   ├── admin/
+│   └── errors/
+└── data/
+    ├── data.json
+    └── backups/
 ```
 
-##  Kurulum ve Çalıştırma
+## Setup
 
-### 1️ Projeyi İndirin
+**1. Create and activate a virtual environment**
 
 ```bash
-cd 360EV
-```
-
-### 2️ Virtual Environment
-
-```powershell
-# Windows PowerShell
+# Windows
 python -m venv venv
-.\\venv\\Scripts\\Activate.ps1
+venv\Scripts\activate
 
-# macOS/Linux
+# macOS / Linux
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-### 3️ Dependencies
+**2. Install dependencies**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4️ Environment Configuration
+**3. Configure environment**
 
-`.env` dosyası oluşturun:
+Copy `.env.example` to `.env` and set the required values:
 
 ```env
-# Development
 FLASK_ENV=development
-SECRET_KEY=dev-secret-key-change-in-production-2024
-
-# Production (örnek)
-FLASK_ENV=production
-SECRET_KEY=your-super-secure-secret-key-here
+SECRET_KEY=change-this-in-production
 ```
 
-### 5️ Uygulamayı Başlatın
+**4. Run**
 
-**Development:**
 ```bash
+# Development
 python app.py
-```
 
-**Production:**
-```bash
+# Production
 gunicorn wsgi:app -b 0.0.0.0:5000 -w 4
 ```
 
- **Uygulama `http://localhost:5000` adresinde çalışacaktır.**
+The app will be available at `http://localhost:5000`.
 
-##  Test
+## Testing
 
 ```bash
-# Test suite çalıştır
 python -m pytest test_app.py -v
 
-# Coverage ile
+# With coverage
 pip install pytest-cov
 python -m pytest test_app.py --cov=. --cov-report=html
 ```
 
-##  Kullanıcı Rolleri
+## User Roles
 
-| Rol | Açıklama | Yetkiler |
-|-----|----------|----------|
-| `user` | Normal kullanıcı | İlan oluşturma, profil düzenleme |
-| `agent` | Emlak danışmanı | Gelişmiş ilan yönetimi |
-| `admin` | Yönetici | Kullanıcı yönetimi, ilan moderasyonu |
-| `super_admin` | Süper yönetici | Tüm sistem yönetimi |
+| Role | Description |
+|------|-------------|
+| `user` | Create listings, edit profile |
+| `agent` | Extended listing management |
+| `admin` | User management, listing moderation |
+| `super_admin` | Full system access |
 
-##  Konfigürasyon
-
-### Environment Types
+## Configuration
 
 ```python
 # Development
 DEBUG = True
 SESSION_COOKIE_SECURE = False
 
-# Production  
+# Production
 DEBUG = False
 SESSION_COOKIE_SECURE = True
-SECRET_KEY = environ.get('SECRET_KEY')  # Required!
+SECRET_KEY = environ.get('SECRET_KEY')  # required
 
-# Testing
-TESTING = True
-WTF_CSRF_ENABLED = False
-```
-
-### File Upload
-
-```python
-MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
+# File uploads
+MAX_CONTENT_LENGTH = 16 * 1024 * 1024   # 16 MB
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-UPLOAD_FOLDER = 'static/uploads'
 ```
 
-##  Database Structure
+## Database
 
-JSON tabanlı dosya veritabanı:
+Data is stored in `data/data.json` with the following top-level keys:
 
 ```json
 {
-  "users": [
-    {
-      "id": "uuid",
-      "email": "user@example.com", 
-      "name": "Kullanıcı Adı",
-      "role": "user|agent|admin|super_admin",
-      "bio": "Hakkımda bilgisi",
-      "city": "Şehir",
-      "profession": "Meslek",
-      "photo_url": "/static/uploads/profiles/...",
-      "password_hash": "pbkdf2:sha256:...",
-      "created_at": "2026-02-10T...",
-      "is_active": true
-    }
-  ],
-  "properties": [
-    {
-      "id": "uuid",
-      "user_id": "uuid", 
-      "title": "İlan Başlığı",
-      "description": "Açıklama",
-      "price": 1500000,
-      "city": "Bursa",
-      "district": "Yıldırım",
-      "category": "konut|ticari",
-      "listing_type": "sale|rent", 
-      "status": "active|pending|inactive",
-      "images": ["image1.jpg", "image2.jpg"],
-      "tour": {
-        "scenes": [...]  # 360° tur sahneleri
-      },
-      "views": 0,
-      "created_at": "2026-02-10T..."
-    }
-  ],
-  "pages": [...],      # Statik sayfalar (hakkımızda, vs.)
-  "settings": {...},   # Site ayarları  
-  "categories": [...], # İlan kategorileri
-  "cities": [...]      # Şehir listesi
+  "users": [],
+  "properties": [],
+  "pages": [],
+  "settings": {},
+  "categories": [],
+  "cities": []
 }
 ```
 
-##  Güvenlik
+Each property may include a `tour` object with scene data for 360-degree tours. Backups are written automatically to `data/backups/`.
 
-### Implemented Security Features
+## Security
 
- **CSRF Protection**: WTF-CSRF ile form koruması  
- **Password Hashing**: pbkdf2:sha256 ile güvenli hash  
- **Session Security**: HttpOnly, SameSite cookies  
- **File Upload Validation**: Type ve size kontrolü  
- **XSS Prevention**: Template auto-escaping  
- **Authentication**: Flask-Login session management  
- **Role-based Access**: Decorator'lar ile yetkilendirme  
+- CSRF protection on all forms (Flask-WTF)
+- Passwords hashed with `pbkdf2:sha256`
+- `HttpOnly`, `SameSite` session cookies
+- File upload validation (type and size)
+- Template auto-escaping (XSS prevention)
+- Role-based access decorators
 
-### Security Best Practices
+## Roadmap
 
-```python
-# Production'da mutlaka ayarlayın
-SECRET_KEY = strong-random-key
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True 
-SESSION_COOKIE_SAMESITE = 'Lax'
-
-# File upload güvenliği
-MAX_CONTENT_LENGTH = 16MB
-ALLOWED_EXTENSIONS = image_files_only
-```
-
-##  Dashboard Features
-
-### Kullanıcı Dashboard
-- **İstatistik Kartları**: 5 farklı metrik (Toplam, Aktif, Bekleyen, Görüntülenme, 360°)
-- **Navy Gradient Tema**: Professional SaaS tasarımı
-- **Quick Actions**: Hızlı işlem butonları
-- **Property Table**: Son ilanlar tablosu
-- **Responsive Design**: Mobil uyumlu card layout
-
-### Profil Sistemi  
-- **Profil Fotoğrafı**: Upload ve önizleme
-- **Bio**: 400 karakter kişisel tanıtım
-- **Location**: Şehir bilgisi
-- **Profession**: Meslek/ünvan
-- **Statistics**: Kişisel ilan istatistikleri
-- **Verification Badge**: Profil doğrulama rozeti
-
-## UI/UX Design System
-
-### Colors (Navy Theme)
-```css
---primary-navy: #1E3A8A     /* Ana lacivert */
---royal-blue: #2563EB       /* Royal mavi */ 
---success-teal: #0D9488     /* Başarı yeşili */
---warning-amber: #D97706    /* Uyarı turuncusu */
---info-indigo: #4F46E5      /* Bilgi indigo */
---purple: #7C3AED           /* Vurgu moru */
-```
-
-### Components
-- **Stat Cards**: Gradient borders, hover effects
-- **Buttons**: Navy gradient, transform animations
-- **Forms**: Rounded inputs, focus states  
-- **Navigation**: Sticky header, dropdown menus
-- **Tables**: Gradient headers, hover rows
-- **Badges**: Colorful role indicators
-
-##  Performance
-
-### Optimizations
- **Static File Caching**: Browser cache headers  
- **Image Compression**: PIL ile otomatik resize  
- **JSON Database**: Thread-safe file locking  
- **Lazy Loading**: Template-level lazy loading  
- **CDN Assets**: Bootstrap, Font Awesome CDN  
-
-### Monitoring
-- **Logging**: File-based log system
-- **Error Tracking**: Custom error pages
-- **Performance Metrics**: Response time tracking (planned)
-
-##  Roadmap & TODO
-
-###  **Kısa Vadeli (Q1 2026)**
 - [ ] Real-time notifications
-- [ ] Advanced search filters  
-- [ ] Map integration (Google Maps)
-- [ ] WhatsApp integration
+- [ ] Advanced search and filters
+- [ ] Map integration
 - [ ] Email notifications
-- [ ] Backup automation
-
-###  **Uzun Vadeli (Q2-Q3 2026)**  
 - [ ] RESTful API
-- [ ] Mobile app (React Native)
-- [ ] Advanced analytics
 - [ ] Payment integration
-- [ ] Multi-language support
-- [ ] Advanced SEO optimization
 
-### **Geliştirilmekte**
-- [x]  Dashboard redesign (Navy theme)
-- [x]  Profile system with photos
-- [x]  Admin panel foundation  
-- [x]  360° tour system
-- [ ]  Advanced property filters
-- [ ]  SEO & social media integration
+## License
 
-##  Contributing
-
-Bu proje aktif geliştirme aşamasında. Contributions welcome!
-
-### Development Setup
-```bash
-# Development dependencies
-pip install -r requirements.txt
-
-# Run tests
-python -m pytest -v
-
-# Code formatting (planned)
-pip install black flake8
-black . && flake8 .
-```
-
-##  License
-
-Bu proje özel bir SaaS platformudur. Tüm hakları saklıdır.
-
-
-
----
-
-<div align="center">
-
-** 360 Emlak** - *Geleceğin Gayrimenkul Platformu*
-
-*Modern • Güvenli • Kullanıcı Dostu*
-
-</div>
+Private — all rights reserved.
