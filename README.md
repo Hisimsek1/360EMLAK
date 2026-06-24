@@ -9,7 +9,7 @@ A real estate listing platform built with Flask, featuring 360-degree virtual to
 
 ## Features
 
-- Authentication with CSRF protection (Flask-Login) 
+- Authentication with CSRF protection (Flask-Login)
 - User profiles with photo upload, bio, city, and profession fields
 - Property listings with image galleries
 - 360-degree virtual tour creation and viewing (Pannellum.js)
