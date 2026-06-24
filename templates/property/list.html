@@ -1,88 +1,234 @@
 {% extends "base.html" %}
 
-{% block title %}Tüm İlanlar - 360 Emlak{% endblock %}
+{% block title %}İlanlar - 360 Emlak{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="mb-3">
-                <i class="fas fa-building text-primary"></i> Tüm İlanlar
-            </h1>
-            <p class="text-muted">{{ properties|length }} ilan bulundu</p>
-        </div>
-    </div>
-    
-    {% if properties %}
-    <div class="row">
-        {% for property in properties %}
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card h-100 property-card">
-                <div style="position: relative;">
-                    {% if property.images %}
-                        <img src="{{ url_for('static', filename='uploads/properties/' + property.id + '/' + property.images[0].thumbnail) }}" 
-                             class="card-img-top" alt="{{ property.title }}" style="height: 240px; object-fit: cover;">
-                    {% elif property.get('tour', {}).get('scenes') %}
-                        <img src="/static/uploads/tours/{{ property.id }}/{{ property.tour.scenes[0].thumbnail }}" 
-                             class="card-img-top" alt="{{ property.title }}" style="height: 240px; object-fit: cover;">
-                    {% else %}
-                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 240px;">
-                            <i class="fas fa-image fa-3x text-muted"></i>
-                        </div>
-                    {% endif %}
-                    
-                    {% if property.get('tour', {}).get('scenes') %}
-                        <span class="badge bg-info position-absolute top-0 start-0 m-2">
-                            <i class="fas fa-vr-cardboard"></i> 360° Tur
-                        </span>
-                    {% endif %}
-                    
-                    <span class="badge bg-primary position-absolute top-0 end-0 m-2">
-                        {{ 'Satılık' if property.listing_type == 'sale' else 'Kiralık' }}
-                    </span>
-                </div>
-                
-                <div class="card-body">
-                    <h5 class="card-title">{{ property.title }}</h5>
-                    <p class="text-muted mb-2">
-                        <i class="fas fa-map-marker-alt"></i> {{ property.district }}, {{ property.city }}
-                    </p>
-                    
-                    <div class="d-flex gap-3 mb-3 text-muted small">
-                        {% if property.area %}
-                        <span><i class="fas fa-ruler-combined"></i> {{ property.area }} m²</span>
-                        {% endif %}
-                        {% if property.rooms %}
-                        <span><i class="fas fa-bed"></i> {{ property.rooms }}</span>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="text-primary mb-0">{{ property.price|format_price }} ₺</h4>
-                        <a href="{{ url_for('property.detail', property_id=property.id) }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-eye"></i> İncele
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle"></i> Henüz ilan bulunmamaktadır.
-    </div>
-    {% endif %}
-</div>
-
+{% block extra_css %}
 <style>
 .property-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
 .property-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,168,232,0.3);
+    box-shadow: 0 8px 25px rgba(0,168,232,0.25);
+}
+.filter-card {
+    position: sticky;
+    top: 1rem;
+}
+.active-filter-badge {
+    font-size: .75rem;
 }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 px-4">
+    <!-- Page header -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h1 class="h3 mb-0"><i class="fas fa-building text-primary"></i> İlanlar</h1>
+            <small class="text-muted">
+                {{ properties|length }} sonuç
+                {% if properties|length != total %} / {{ total }} toplam{% endif %}
+            </small>
+        </div>
+        <a href="{{ url_for('tour.create') }}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> İlan Ver
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- ── Filters Sidebar ── -->
+        <div class="col-lg-3 mb-4">
+            <div class="card filter-card">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-filter"></i> Filtrele & Ara
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{{ url_for('property.index') }}" id="filterForm">
+                        <!-- Keyword search -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Anahtar Kelime</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" name="q" class="form-control form-control-sm"
+                                       placeholder="Başlık, şehir, açıklama…"
+                                       value="{{ filters.q }}">
+                            </div>
+                        </div>
+
+                        <!-- Listing type -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">İlan Türü</label>
+                            <select name="listing_type" class="form-select form-select-sm">
+                                <option value="">Tümü</option>
+                                <option value="sale" {% if filters.listing_type == 'sale' %}selected{% endif %}>Satılık</option>
+                                <option value="rent" {% if filters.listing_type == 'rent' %}selected{% endif %}>Kiralık</option>
+                            </select>
+                        </div>
+
+                        <!-- Category -->
+                        {% if categories %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Kategori</label>
+                            <select name="category" class="form-select form-select-sm">
+                                <option value="">Tümü</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.id }}"
+                                    {% if filters.category == cat.id %}selected{% endif %}>
+                                    {{ cat.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+
+                        <!-- City -->
+                        {% if cities %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Şehir</label>
+                            <select name="city" class="form-select form-select-sm">
+                                <option value="">Tümü</option>
+                                {% for c in cities %}
+                                <option value="{{ c }}"
+                                    {% if filters.city == c %}selected{% endif %}>{{ c }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+
+                        <!-- Price range -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Fiyat Aralığı (₺)</label>
+                            <div class="row g-1">
+                                <div class="col-6">
+                                    <input type="number" name="min_price" class="form-control form-control-sm"
+                                           placeholder="Min" min="0"
+                                           value="{{ filters.min_price if filters.min_price is not none else '' }}">
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" name="max_price" class="form-control form-control-sm"
+                                           placeholder="Max" min="0"
+                                           value="{{ filters.max_price if filters.max_price is not none else '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rooms -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Oda Sayısı</label>
+                            <select name="rooms" class="form-select form-select-sm">
+                                <option value="">Tümü</option>
+                                {% for r in ['1+0','1+1','2+1','3+1','4+1','5+1','5+2','10+2'] %}
+                                <option value="{{ r }}" {% if filters.rooms == r %}selected{% endif %}>{{ r }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- 360 Tour only -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="with_tour" id="withTour"
+                                       {% if filters.with_tour %}checked{% endif %}>
+                                <label class="form-check-label small" for="withTour">
+                                    <i class="fas fa-vr-cardboard text-info"></i> Sadece 360° Turlu
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Sort -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Sıralama</label>
+                            <select name="sort" class="form-select form-select-sm">
+                                <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>En Yeni</option>
+                                <option value="price_asc" {% if filters.sort == 'price_asc' %}selected{% endif %}>Fiyat ↑</option>
+                                <option value="price_desc" {% if filters.sort == 'price_desc' %}selected{% endif %}>Fiyat ↓</option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fas fa-search"></i> Ara
+                            </button>
+                            <a href="{{ url_for('property.index') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-times"></i> Temizle
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Results ── -->
+        <div class="col-lg-9">
+            {% if properties %}
+            <div class="row">
+                {% for property in properties %}
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card h-100 property-card">
+                        <div style="position: relative;">
+                            {% if property.images %}
+                                <img src="{{ url_for('static', filename='uploads/properties/' + property.id + '/' + property.images[0].thumbnail) }}"
+                                     class="card-img-top" alt="{{ property.title }}" style="height: 200px; object-fit: cover;"
+                                     onerror="this.src='/static/images/placeholders/property-placeholder.jpg';this.onerror=null;">
+                            {% elif property.get('tour', {}).get('scenes') %}
+                                <img src="/static/uploads/tours/{{ property.id }}/{{ property.tour.scenes[0].thumbnail }}"
+                                     class="card-img-top" alt="{{ property.title }}" style="height: 200px; object-fit: cover;"
+                                     onerror="this.src='/static/images/placeholders/property-placeholder.jpg';this.onerror=null;">
+                            {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                </div>
+                            {% endif %}
+
+                            {% if property.get('tour', {}).get('scenes') %}
+                                <span class="badge bg-info position-absolute top-0 start-0 m-2">
+                                    <i class="fas fa-vr-cardboard"></i> 360°
+                                </span>
+                            {% endif %}
+
+                            <span class="badge bg-primary position-absolute top-0 end-0 m-2">
+                                {{ 'Satılık' if property.listing_type == 'sale' else 'Kiralık' }}
+                            </span>
+                        </div>
+
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title mb-1">{{ property.title }}</h6>
+                            <p class="text-muted small mb-2">
+                                <i class="fas fa-map-marker-alt"></i> {{ property.district }}, {{ property.city }}
+                            </p>
+
+                            <div class="d-flex gap-3 mb-3 text-muted small">
+                                {% if property.area %}
+                                <span><i class="fas fa-ruler-combined"></i> {{ property.area }} m²</span>
+                                {% endif %}
+                                {% if property.rooms %}
+                                <span><i class="fas fa-bed"></i> {{ property.rooms }}</span>
+                                {% endif %}
+                                <span><i class="fas fa-eye"></i> {{ property.get('views', 0) }}</span>
+                            </div>
+
+                            <div class="mt-auto d-flex justify-content-between align-items-center">
+                                <h5 class="text-primary mb-0">{{ property.price|format_price }} ₺</h5>
+                                <a href="{{ url_for('property.detail', property_id=property.id) }}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-eye"></i> İncele
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Arama kriterlerine uygun ilan bulunamadı.</h5>
+                <a href="{{ url_for('property.index') }}" class="btn btn-outline-primary mt-2">
+                    <i class="fas fa-times"></i> Filtreleri Temizle
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}
