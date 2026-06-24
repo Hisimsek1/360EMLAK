@@ -108,7 +108,7 @@ def profile():
                     if os.path.exists(old_photo):
                         try:
                             os.remove(old_photo)
-                        except:
+                        except OSError:
                             pass
                 
                 # Update photo URL
@@ -116,16 +116,16 @@ def profile():
         
         # Update password if provided
         if form.current_password.data:
-            if not check_password_hash(user_data['password'], form.current_password.data):
+            if not check_password_hash(user_data['password_hash'], form.current_password.data):
                 flash('Mevcut şifre yanlış', 'danger')
                 return render_template('profile.html', form=form, stats=stats)
-            
+
             if form.new_password.data:
-                user_data['password'] = generate_password_hash(form.new_password.data)
+                user_data['password_hash'] = generate_password_hash(form.new_password.data)
                 flash('Şifreniz güncellendi', 'success')
-        
+
         # Save updates
-        dm.update('users', lambda u: u['id'] == current_user.id, user_data)
+        dm.update_one('users', lambda u: u['id'] == current_user.id, user_data)
         flash('Profiliniz güncellendi', 'success')
         return redirect(url_for('dashboard.profile'))
     
