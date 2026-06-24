@@ -192,6 +192,15 @@
                     {{ property.price|format_price }} ₺
                 </div>
                 <small>{{ 'Satılık' if property.listing_type == 'sale' else 'Kiralık' }}</small>
+                {% if current_user.is_authenticated %}
+                <div class="mt-2">
+                    <button id="favBtn" class="btn btn-sm {{ 'btn-danger' if is_favorite else 'btn-outline-light' }}"
+                            onclick="toggleFav('{{ property.id }}')" title="Favorilere Ekle">
+                        <i class="fas fa-heart"></i>
+                        <span id="favText">{{ 'Favorilerimde' if is_favorite else 'Favoriye Ekle' }}</span>
+                    </button>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -811,6 +820,31 @@ document.getElementById('loginModal')?.addEventListener('click', function(e) {
         hideLoginModal();
     }
 });
+
+// Favorite toggle
+function toggleFav(propertyId) {
+    fetch(`/api/favorite/${propertyId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const btn = document.getElementById('favBtn');
+            const txt = document.getElementById('favText');
+            if (data.favorited) {
+                btn.classList.remove('btn-outline-light');
+                btn.classList.add('btn-danger');
+                txt.textContent = 'Favorilerimde';
+            } else {
+                btn.classList.remove('btn-danger');
+                btn.classList.add('btn-outline-light');
+                txt.textContent = 'Favoriye Ekle';
+            }
+        }
+    })
+    .catch(err => console.error(err));
+}
 
 // Photo/360 Toggle Functions
 function showPhotos() {

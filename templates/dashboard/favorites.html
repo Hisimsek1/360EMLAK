@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Favorilerim - 360 Emlak{% endblock %}
+
+{% block extra_css %}
+<style>
+.property-card { transition: transform .3s, box-shadow .3s; }
+.property-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,168,232,.2); }
+.fav-btn-remove { position: absolute; top: .5rem; right: .5rem; z-index: 10; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2><i class="fas fa-heart text-danger"></i> Favorilerim</h2>
+            <p class="text-muted mb-0">{{ properties|length }} kayıtlı ilan</p>
+        </div>
+        <a href="{{ url_for('property.index') }}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-search"></i> İlan Ara
+        </a>
+    </div>
+
+    {% if properties %}
+    <div class="row" id="favoritesGrid">
+        {% for property in properties %}
+        <div class="col-lg-4 col-md-6 mb-4" id="fav-card-{{ property.id }}">
+            <div class="card h-100 property-card" style="position:relative;">
+                <!-- Remove from favorites -->
+                <button class="btn btn-sm btn-danger fav-btn-remove"
+                        onclick="removeFavorite('{{ property.id }}')"
+                        title="Favorilerden kaldır">
+                    <i class="fas fa-heart-broken"></i>
+                </button>
+
+                {% if property.images %}
+                    <img src="{{ url_for('static', filename='uploads/properties/' + property.id + '/' + property.images[0].thumbnail) }}"
+                         class="card-img-top" alt="{{ property.title }}" style="height:200px;object-fit:cover;"
+                         onerror="this.src='/static/images/placeholders/property-placeholder.jpg';this.onerror=null;">
+                {% elif property.get('tour', {}).get('scenes') %}
+                    <img src="/static/uploads/tours/{{ property.id }}/{{ property.tour.scenes[0].thumbnail }}"
+                         class="card-img-top" alt="{{ property.title }}" style="height:200px;object-fit:cover;"
+                         onerror="this.src='/static/images/placeholders/property-placeholder.jpg';this.onerror=null;">
+                {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:200px;">
+                        <i class="fas fa-image fa-3x text-muted"></i>
+                    </div>
+                {% endif %}
+
+                {% if property.get('tour', {}).get('scenes') %}
+                    <span class="badge bg-info position-absolute top-0 start-0 m-2">
+                        <i class="fas fa-vr-cardboard"></i> 360°
+                    </span>
+                {% endif %}
+                <span class="badge bg-primary position-absolute" style="top:.5rem;left:50%;transform:translateX(-50%);">
+                    {{ 'Satılık' if property.listing_type == 'sale' else 'Kiralık' }}
+                </span>
+
+                <div class="card-body d-flex flex-column">
+                    <h6 class="card-title">{{ property.title }}</h6>
+                    <p class="text-muted small mb-2">
+                        <i class="fas fa-map-marker-alt"></i> {{ property.district }}, {{ property.city }}
+                    </p>
+                    <div class="d-flex gap-3 mb-3 text-muted small">
+                        {% if property.area %}<span><i class="fas fa-ruler-combined"></i> {{ property.area }} m²</span>{% endif %}
+                        {% if property.rooms %}<span><i class="fas fa-bed"></i> {{ property.rooms }}</span>{% endif %}
+                    </div>
+                    <div class="mt-auto d-flex justify-content-between align-items-center">
+                        <h5 class="text-primary mb-0">{{ property.price|format_price }} ₺</h5>
+                        <a href="{{ url_for('property.detail', property_id=property.id) }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-eye"></i> İncele
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-heart fa-4x text-muted mb-3"></i>
+        <h5 class="text-muted">Henüz favoriniz yok</h5>
+        <p class="text-muted">İlanları incelerken kalp simgesine tıklayarak favorilere ekleyebilirsiniz.</p>
+        <a href="{{ url_for('property.index') }}" class="btn btn-primary mt-2">
+            <i class="fas fa-search"></i> İlan Ara
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+const csrfToken = '{{ csrf_token() }}';
+
+function removeFavorite(propertyId) {
+    fetch(`/api/favorite/${propertyId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success && !data.favorited) {
+            const card = document.getElementById(`fav-card-${propertyId}`);
+            if (card) {
+                card.style.transition = 'opacity .3s';
+                card.style.opacity = '0';
+                setTimeout(() => card.remove(), 300);
+            }
+        }
+    })
+    .catch(err => console.error(err));
+}
+</script>
+{% endblock %}

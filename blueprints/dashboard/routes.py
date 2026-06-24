@@ -46,6 +46,23 @@ def properties():
     return render_template('properties_list.html', properties=user_properties)
 
 
+@dashboard_bp.route('/favorites')
+@login_required
+def favorites():
+    """User's saved/favorite properties."""
+    dm = get_data_manager()
+    user_data = dm.find_one('users', lambda u: u['id'] == current_user.id)
+    favorite_ids = user_data.get('favorites', []) if user_data else []
+
+    favorite_properties = []
+    for pid in favorite_ids:
+        prop = dm.find_one('properties', lambda p, i=pid: p.get('id') == i)
+        if prop:
+            favorite_properties.append(prop)
+
+    return render_template('favorites.html', properties=favorite_properties)
+
+
 @dashboard_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():

@@ -414,7 +414,14 @@ def view(id):
             property_data
         )
     
-    return render_template('view.html', property=property_data, owner=owner)
+    # Check if current user has this property in favorites
+    is_favorite = False
+    if current_user.is_authenticated:
+        user_data = dm.find_one('users', lambda u: u['id'] == current_user.id)
+        if user_data:
+            is_favorite = id in user_data.get('favorites', [])
+
+    return render_template('view.html', property=property_data, owner=owner, is_favorite=is_favorite)
 
 
 @tour_bp.route('/edit/<property_id>', methods=['GET', 'POST'])
