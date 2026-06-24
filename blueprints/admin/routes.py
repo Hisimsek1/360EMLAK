@@ -31,15 +31,46 @@ def index():
     dm = get_data_manager()
     data = dm.read_all()
     
-    # Statistics
+    properties = data.get('properties', [])
+    users = data.get('users', [])
+
+    # Core stats
     stats = {
-        'total_users': len(data.get('users', [])),
-        'total_properties': len(data.get('properties', [])),
-        'active_properties': len([p for p in data.get('properties', []) if p.get('status') == 'active']),
-        'agents': len([u for u in data.get('users', []) if u.get('role') == 'agent']),
+        'total_users': len(users),
+        'total_properties': len(properties),
+        'active_properties': len([p for p in properties if p.get('status') == 'active']),
+        'agents': len([u for u in users if u.get('role') == 'agent']),
+        'total_views': sum(p.get('views', 0) for p in properties),
+        'with_tour': len([p for p in properties if p.get('tour', {}).get('scenes')]),
     }
-    
-    return render_template('admin/index.html', stats=stats)
+
+    # Role distribution for pie chart
+    from collections import Counter
+    role_counts = Counter(u.get('role', 'user') for u in users)
+    role_labels = list(role_counts.keys())
+    role_data = list(role_counts.values())
+
+    # Property status distribution
+    status_counts = Counter(p.get('status', 'draft') for p in properties)
+    status_labels = list(status_counts.keys())
+    status_data = list(status_counts.values())
+
+    # Top 5 cities by property count
+    city_counts = Counter(p.get('city', 'Bilinmeyen') for p in properties)
+    top_cities = city_counts.most_common(5)
+    city_labels = [c[0] for c in top_cities]
+    city_data = [c[1] for c in top_cities]
+
+    return render_template(
+        'admin/index.html',
+        stats=stats,
+        role_labels=role_labels,
+        role_data=role_data,
+        status_labels=status_labels,
+        status_data=status_data,
+        city_labels=city_labels,
+        city_data=city_data,
+    )
 
 
 @admin_bp.route('/users')
