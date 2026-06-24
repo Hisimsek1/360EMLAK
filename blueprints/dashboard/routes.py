@@ -32,8 +32,19 @@ def index():
         'views_total': sum(p.get('views', 0) for p in user_properties),
         'with_tour': len([p for p in user_properties if p.get('tour', {}).get('scenes')])
     }
-    
-    return render_template('dashboard.html', stats=stats, properties=user_properties)
+
+    # Top 5 most viewed properties for chart
+    top_properties = sorted(user_properties, key=lambda p: p.get('views', 0), reverse=True)[:5]
+    chart_labels = [p['title'][:20] + ('…' if len(p['title']) > 20 else '') for p in top_properties]
+    chart_views = [p.get('views', 0) for p in top_properties]
+
+    return render_template(
+        'dashboard.html',
+        stats=stats,
+        properties=user_properties,
+        chart_labels=chart_labels,
+        chart_views=chart_views,
+    )
 
 
 @dashboard_bp.route('/properties')
