@@ -59,7 +59,7 @@
                     
                     <div class="d-flex justify-content-between align-items-center">
                         <h4 class="text-primary mb-0">{{ property.price|format_price }} ₺</h4>
-                        <a href="{{ url_for('tour.view', id=property.id) }}" class="btn btn-primary btn-sm">
+                        <a href="{{ url_for('property.detail', property_id=property.id) }}" class="btn btn-primary btn-sm">
                             <i class="fas fa-eye"></i> İncele
                         </a>
                     </div>
