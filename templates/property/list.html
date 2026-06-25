@@ -219,6 +219,58 @@
                 </div>
                 {% endfor %}
             </div>
+
+            <!-- ── Pagination ── -->
+            {% if total_pages > 1 %}
+            <nav aria-label="İlan sayfaları" class="mt-2 mb-4">
+                <ul class="pagination justify-content-center flex-wrap">
+                    <!-- Previous -->
+                    <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('property.index', page=page-1, **filters) }}" aria-label="Önceki">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+
+                    {% set start_page = [1, page - 2] | max %}
+                    {% set end_page = [total_pages, page + 2] | min %}
+
+                    {% if start_page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('property.index', page=1, **filters) }}">1</a>
+                    </li>
+                    {% if start_page > 2 %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                    {% endif %}
+
+                    {% for p in range(start_page, end_page + 1) %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('property.index', page=p, **filters) }}">{{ p }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if end_page < total_pages %}
+                    {% if end_page < total_pages - 1 %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('property.index', page=total_pages, **filters) }}">{{ total_pages }}</a>
+                    </li>
+                    {% endif %}
+
+                    <!-- Next -->
+                    <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('property.index', page=page+1, **filters) }}" aria-label="Sonraki">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="text-center text-muted small">
+                    {{ total_filtered }} sonuçtan {{ (page-1)*per_page + 1 }}–{{ [page*per_page, total_filtered]|min }} arası gösteriliyor
+                </p>
+            </nav>
+            {% endif %}
+
             {% else %}
             <div class="text-center py-5">
                 <i class="fas fa-search fa-3x text-muted mb-3"></i>

@@ -6,10 +6,12 @@ from core.data_manager import get_data_manager
 
 property_bp = Blueprint('property', __name__, template_folder='../../templates/property')
 
+PER_PAGE = 12
+
 
 @property_bp.route('/')
 def index():
-    """Property listings page with search and filtering."""
+    """Property listings page with search, filtering and pagination."""
     dm = get_data_manager()
     data = dm.read_all()
 
@@ -27,6 +29,9 @@ def index():
     rooms = request.args.get('rooms', '')
     with_tour = request.args.get('with_tour') == 'on'
     sort = request.args.get('sort', 'newest')
+    page = request.args.get('page', 1, type=int)
+    if page < 1:
+        page = 1
 
     filtered = []
     for prop in all_properties:
@@ -62,17 +67,28 @@ def index():
     else:
         filtered.sort(key=lambda p: p.get('created_at', ''), reverse=True)
 
+    total_filtered = len(filtered)
+    import math
+    total_pages = max(1, math.ceil(total_filtered / PER_PAGE))
+    page = min(page, total_pages)
+    offset = (page - 1) * PER_PAGE
+    page_properties = filtered[offset:offset + PER_PAGE]
+
     filters = dict(q=q, listing_type=listing_type, category=category, city=city,
                    min_price=min_price, max_price=max_price, rooms=rooms,
                    with_tour=with_tour, sort=sort)
 
     return render_template(
         'property/list.html',
-        properties=filtered,
+        properties=page_properties,
         categories=categories,
         cities=cities,
         filters=filters,
         total=len(all_properties),
+        total_filtered=total_filtered,
+        page=page,
+        total_pages=total_pages,
+        per_page=PER_PAGE,
     )
 
 
