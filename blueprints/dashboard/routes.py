@@ -2,7 +2,7 @@
 Dashboard Blueprint Routes
 User dashboard and property management
 """
-from flask import Blueprint, render_template, flash, redirect, url_for, request, current_app
+from flask import Blueprint, render_template, flash, redirect, url_for, request, current_app, session
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -43,6 +43,14 @@ def index():
     messages = [m for m in all_data.get('messages', []) if m.get('owner_id') == current_user.id]
     messages.sort(key=lambda m: m.get('created_at', ''), reverse=True)
 
+    # Recently viewed properties from session
+    recently_viewed_ids = session.get('recently_viewed', [])
+    recently_viewed = []
+    for pid in recently_viewed_ids[:5]:
+        prop = dm.find_one('properties', lambda p, i=pid: p.get('id') == i)
+        if prop and prop.get('status') == 'active':
+            recently_viewed.append(prop)
+
     return render_template(
         'dashboard.html',
         stats=stats,
@@ -50,6 +58,7 @@ def index():
         chart_labels=chart_labels,
         chart_views=chart_views,
         messages=messages,
+        recently_viewed=recently_viewed,
     )
 
 

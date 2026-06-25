@@ -2,7 +2,7 @@
 Tour Blueprint Routes
 360 Virtual Tour Management - Create, Edit, View Tours
 """
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app, session
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 import os
@@ -409,6 +409,13 @@ def view(id):
                 'city': owner_data.get('city', '')
             }
     
+    # Track recently viewed in session (max 10 entries, no duplicates)
+    recently = session.get('recently_viewed', [])
+    if id in recently:
+        recently.remove(id)
+    recently.insert(0, id)
+    session['recently_viewed'] = recently[:10]
+
     # Increment view count
     if not current_user.is_authenticated or property_data['user_id'] != current_user.id:
         property_data['views'] = property_data.get('views', 0) + 1
