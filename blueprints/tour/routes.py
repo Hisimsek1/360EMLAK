@@ -70,7 +70,11 @@ def create():
                 for idx, photo in enumerate(form.images.data):
                     if photo and photo.filename:
                         # Generate unique filename
+                        if '.' not in photo.filename:
+                            continue
                         file_ext = photo.filename.rsplit('.', 1)[1].lower()
+                        if file_ext not in {'jpg', 'jpeg', 'png', 'gif', 'webp'}:
+                            continue
                         filename = f"photo_{idx + 1}_{uuid.uuid4().hex[:8]}.{file_ext}"
                         filepath = os.path.join(upload_folder, filename)
                         
@@ -470,8 +474,8 @@ def edit(property_id):
             })
             
             # Save to database
-            dm.update('properties', lambda p: p['id'] == property_id, property_data)
-            
+            dm.update_one('properties', lambda p: p['id'] == property_id, property_data)
+
             flash('İlan başarıyla güncellendi.', 'success')
             return redirect(url_for('tour.editor', id=property_id))
         
@@ -552,8 +556,8 @@ def unpublish(property_id):
         property_data['updated_at'] = datetime.now().isoformat()
         
         # Save to database
-        dm.update('properties', lambda p: p['id'] == property_id, property_data)
-        
+        dm.update_one('properties', lambda p: p['id'] == property_id, property_data)
+
         return jsonify({
             'success': True,
             'message': 'İlan yayından kaldırıldı'

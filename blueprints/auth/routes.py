@@ -4,6 +4,7 @@ Handles user registration, login, and logout
 """
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, current_user, login_required
+from urllib.parse import urlparse
 from datetime import datetime
 
 from blueprints.auth.forms import LoginForm, RegisterForm
@@ -101,10 +102,12 @@ def login():
         else:
             flash(f'Hoş geldiniz, {user.name}!', 'success')
         
-        # Redirect to next page or dashboard
+        # Redirect to next page or dashboard (validate to prevent open redirect)
         next_page = request.args.get('next')
         if next_page:
-            return redirect(next_page)
+            parsed = urlparse(next_page)
+            if parsed.netloc == '' and parsed.scheme == '':
+                return redirect(next_page)
         
         return redirect(url_for('dashboard.index'))
     
