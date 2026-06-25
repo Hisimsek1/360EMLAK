@@ -388,6 +388,32 @@
         </div>
     </div>
     
+    <!-- Social Sharing Bar -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card border-0 bg-light py-2 px-3">
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <span class="text-muted small fw-semibold me-1"><i class="fas fa-share-alt"></i> Paylaş:</span>
+                    <a id="shareWhatsapp" href="#" target="_blank" rel="noopener"
+                       class="btn btn-sm btn-success">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                    <a id="shareFacebook" href="#" target="_blank" rel="noopener"
+                       class="btn btn-sm btn-primary">
+                        <i class="fab fa-facebook"></i> Facebook
+                    </a>
+                    <a id="shareTwitter" href="#" target="_blank" rel="noopener"
+                       class="btn btn-sm" style="background:#000;color:#fff;">
+                        <i class="fab fa-x-twitter"></i> X
+                    </a>
+                    <button onclick="copyLink()" class="btn btn-sm btn-outline-secondary" id="copyBtn">
+                        <i class="fas fa-link"></i> Linki Kopyala
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Property Information -->
     <div class="row mt-4">
         <div class="col-lg-8">
@@ -842,6 +868,32 @@ document.getElementById('loginModal')?.addEventListener('click', function(e) {
         hideLoginModal();
     }
 });
+
+// Social sharing
+(function() {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent('{{ property.title|e }} - 360 Emlak');
+    document.getElementById('shareWhatsapp').href =
+        'https://api.whatsapp.com/send?text=' + title + '%20' + url;
+    document.getElementById('shareFacebook').href =
+        'https://www.facebook.com/sharer/sharer.php?u=' + url;
+    document.getElementById('shareTwitter').href =
+        'https://twitter.com/intent/tweet?text=' + title + '&url=' + url;
+})();
+
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.innerHTML = '<i class="fas fa-check"></i> Kopyalandı!';
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-outline-secondary');
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-link"></i> Linki Kopyala';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-secondary');
+        }, 2000);
+    });
+}
 
 // Contact message
 function sendContactMessage() {
