@@ -459,7 +459,7 @@
                 </h5>
                 
                 {% if current_user.is_authenticated %}
-                    {% if owner %}
+                    {% if owner and owner.id != current_user.id %}
                         <div id="contactInfo" style="display: none;">
                             <div class="contact-card">
                                 <div class="d-flex align-items-center mb-3">
@@ -478,21 +478,21 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 {% if owner.phone %}
                                 <div class="contact-item mb-2">
                                     <i class="fas fa-phone text-primary"></i>
                                     <a href="tel:{{ owner.phone }}" class="contact-link">{{ owner.phone }}</a>
                                 </div>
                                 {% endif %}
-                                
+
                                 {% if owner.email %}
                                 <div class="contact-item mb-2">
                                     <i class="fas fa-envelope text-primary"></i>
                                     <a href="mailto:{{ owner.email }}" class="contact-link">{{ owner.email }}</a>
                                 </div>
                                 {% endif %}
-                                
+
                                 {% if owner.phone %}
                                 <div class="contact-item mb-2">
                                     <i class="fab fa-whatsapp text-success"></i>
@@ -501,7 +501,7 @@
                                     </a>
                                 </div>
                                 {% endif %}
-                                
+
                                 {% if owner.city %}
                                 <div class="contact-item">
                                     <i class="fas fa-map-marker-alt text-primary"></i>
@@ -510,16 +510,38 @@
                                 {% endif %}
                             </div>
                         </div>
-                        <button class="btn btn-primary w-100" onclick="toggleContactInfo()" id="contactBtn">
+                        <button class="btn btn-primary w-100 mb-2" onclick="toggleContactInfo()" id="contactBtn">
                             <i class="fas fa-phone"></i> İletişime Geç
                         </button>
+
+                        <!-- Message Form -->
+                        <hr>
+                        <h6 class="text-primary mb-2"><i class="fas fa-envelope"></i> Mesaj Gönder</h6>
+                        <div id="msgSuccess" class="alert alert-success d-none py-2">
+                            <i class="fas fa-check-circle"></i> Mesajınız iletildi!
+                        </div>
+                        <div id="msgError" class="alert alert-danger d-none py-2"></div>
+                        <div class="mb-2">
+                            <input type="text" id="msgName" class="form-control form-control-sm" placeholder="Adınız" value="{{ current_user.name }}">
+                        </div>
+                        <div class="mb-2">
+                            <input type="text" id="msgPhone" class="form-control form-control-sm" placeholder="Telefon (opsiyonel)">
+                        </div>
+                        <div class="mb-2">
+                            <textarea id="msgText" class="form-control form-control-sm" rows="3"
+                                      placeholder="Mesajınızı yazın…" maxlength="1000"></textarea>
+                        </div>
+                        <button class="btn btn-outline-primary w-100 btn-sm" onclick="sendContactMessage()">
+                            <i class="fas fa-paper-plane"></i> Mesajı Gönder
+                        </button>
+                    {% elif owner and owner.id == current_user.id %}
+                        <div class="alert alert-info py-2 small">
+                            <i class="fas fa-info-circle"></i> Bu ilan size ait.
+                        </div>
                     {% else %}
                         <p class="text-muted">
                             İlan sahibinin iletişim bilgileri bulunamadı.
                         </p>
-                        <button class="btn btn-secondary w-100" disabled>
-                            <i class="fas fa-phone"></i> İletişim Bilgisi Yok
-                        </button>
                     {% endif %}
                 {% else %}
                     <p class="text-muted">
@@ -820,6 +842,37 @@ document.getElementById('loginModal')?.addEventListener('click', function(e) {
         hideLoginModal();
     }
 });
+
+// Contact message
+function sendContactMessage() {
+    const name = document.getElementById('msgName')?.value.trim();
+    const phone = document.getElementById('msgPhone')?.value.trim();
+    const text = document.getElementById('msgText')?.value.trim();
+    const successEl = document.getElementById('msgSuccess');
+    const errorEl = document.getElementById('msgError');
+
+    successEl.classList.add('d-none');
+    errorEl.classList.add('d-none');
+
+    if (!text) { errorEl.textContent = 'Mesaj boş olamaz.'; errorEl.classList.remove('d-none'); return; }
+
+    fetch(`/api/contact/${propertyId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
+        body: JSON.stringify({ name, phone, message: text })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            successEl.classList.remove('d-none');
+            document.getElementById('msgText').value = '';
+        } else {
+            errorEl.textContent = data.error || 'Bir hata oluştu.';
+            errorEl.classList.remove('d-none');
+        }
+    })
+    .catch(() => { errorEl.textContent = 'Bağlantı hatası.'; errorEl.classList.remove('d-none'); });
+}
 
 // Favorite toggle
 function toggleFav(propertyId) {

@@ -130,6 +130,79 @@ def get_favorites():
     })
 
 
+@api_bp.route('/contact/<property_id>', methods=['POST'])
+@login_required
+def send_contact_message(property_id):
+    """Send a contact message to the property owner"""
+    dm = get_data_manager()
+
+    prop = dm.find_one('properties', lambda p: p.get('id') == property_id)
+    if not prop:
+        return jsonify({'success': False, 'error': 'İlan bulunamadı'}), 404
+
+    if prop.get('user_id') == current_user.id:
+        return jsonify({'success': False, 'error': 'Kendi ilanınıza mesaj gönderemezsiniz'}), 400
+
+    data = request.get_json() or {}
+    message_text = (data.get('message') or '').strip()
+    sender_name = (data.get('name') or current_user.name).strip()
+    sender_phone = (data.get('phone') or '').strip()
+
+    if not message_text:
+        return jsonify({'success': False, 'error': 'Mesaj boş olamaz'}), 400
+    if len(message_text) > 1000:
+        return jsonify({'success': False, 'error': 'Mesaj çok uzun (max 1000 karakter)'}), 400
+
+    import uuid
+    from datetime import datetime
+    msg = {
+        'id': str(uuid.uuid4()),
+        'property_id': property_id,
+        'property_title': prop.get('title', ''),
+        'owner_id': prop.get('user_id'),
+        'sender_id': current_user.id,
+        'sender_name': sender_name,
+        'sender_email': current_user.email,
+        'sender_phone': sender_phone,
+        'message': message_text,
+        'is_read': False,
+        'created_at': datetime.now().isoformat(),
+    }
+
+    all_data = dm.read_all()
+    if 'messages' not in all_data:
+        all_data['messages'] = []
+    all_data['messages'].append(msg)
+    dm.write_all(all_data)
+
+    return jsonify({'success': True, 'message': 'Mesajınız iletildi'})
+
+
+@api_bp.route('/messages')
+@login_required
+def get_messages():
+    """Get messages received by the current user"""
+    dm = get_data_manager()
+    all_data = dm.read_all()
+    msgs = [m for m in all_data.get('messages', []) if m.get('owner_id') == current_user.id]
+    msgs.sort(key=lambda m: m.get('created_at', ''), reverse=True)
+    return jsonify({'success': True, 'messages': msgs, 'unread': sum(1 for m in msgs if not m.get('is_read'))})
+
+
+@api_bp.route('/messages/<msg_id>/read', methods=['POST'])
+@login_required
+def mark_message_read(msg_id):
+    """Mark a message as read"""
+    dm = get_data_manager()
+    all_data = dm.read_all()
+    for msg in all_data.get('messages', []):
+        if msg.get('id') == msg_id and msg.get('owner_id') == current_user.id:
+            msg['is_read'] = True
+            dm.write_all(all_data)
+            return jsonify({'success': True})
+    return jsonify({'success': False, 'error': 'Mesaj bulunamadı'}), 404
+
+
 @api_bp.route('/search')
 def search_properties():
     """Search properties with filters (AJAX)"""

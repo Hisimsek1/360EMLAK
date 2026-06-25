@@ -38,12 +38,18 @@ def index():
     chart_labels = [p['title'][:20] + ('…' if len(p['title']) > 20 else '') for p in top_properties]
     chart_views = [p.get('views', 0) for p in top_properties]
 
+    # Inbox messages for this user
+    all_data = dm.read_all()
+    messages = [m for m in all_data.get('messages', []) if m.get('owner_id') == current_user.id]
+    messages.sort(key=lambda m: m.get('created_at', ''), reverse=True)
+
     return render_template(
         'dashboard.html',
         stats=stats,
         properties=user_properties,
         chart_labels=chart_labels,
         chart_views=chart_views,
+        messages=messages,
     )
 
 
